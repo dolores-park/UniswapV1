@@ -1,0 +1,45 @@
+// =================== CS251 DEX Project =================== // 
+//                      Design Document                      //
+//                     Ende Shen, Zhiyin Lin                 //
+// ========================================================= //  
+
+1. Explain why adding and removing liquidity to your exchange does not change the exchange rate.
+
+Exchange rate is defined to be eth_reserves / token_reserves, so eth_reserves = exchange rate * token_reserves.
+At addition or removal time, we add or remove equal value of ETHs and Tokens (i.e. eth_amount =  exchange rate * token_amount). 
+Therefore, the NEW exchange rate = (eth_reserves + eth_amount) / (token_reserves + token_amount) = (exchange rate * token_reserves + exchange rate * token_amount) / (token_reserves + token_amount) = exchange rate. 
+
+2. Explain your scheme for rewarding liquidity providers and justify the design decisions you made. How does it satisfy the liquidity rewards requirements outlined in Section 7?
+
+
+At every swap, we take a fraction of the sent asset as swap fee and distribute it to all current liquid providers in proportional to their asset percentage in the pool. 
+We keep track of "token_fee_pool" and "eth_fee_pool" (current total ETH fee collected that have not been reinvested to the main pool) respectively. 
+After each swap, we reinvest to our maximum capability while ensuring the exchange rate, by taking the minimum of "eth_fee_pool" and "token_fee_pool * eth_reserves / token_reserves" to be the amount of ETH reinvested from eth_fee_pool, and reinvest the proportional amount of tokens.
+
+Per the requirements outlined in section 7, 
+1, 2) Trivial from design.
+3) We calculate the fee at the time of the swap and record it in its raw amount.
+4) We only reinvest (ETH, Token) in accordance to the exchange rate. The leftover fees are kept in "token_fee_pool" and "eth_fee_pool" and will be reinvested at the earliest possible time.
+
+3. Describe at least one method you used to minimize your exchange contract's gas usage. Why was this method effective?
+
+We choose not immediately transfer their proportion of swap fee to each liquid providers at each swap time, as this constitutes a lot of transactions and thus a large amount of gas fee unnecessarily spent. 
+Instead, we keep track of the ETH fee and Token fee that each liquid provider own, by reinvestment. 
+At removal time, we transfer the requested amount + a fraction of fee (so that we ensure non-violation of the k) to the liquid provider at one time.
+
+4. Optional Feedback:
+4a. How much time did you spend on the assignment?
+
+# TODO: answer question 4(a) here
+
+4b. What is one thing that would have been useful to know before starting the assignment?
+
+# TODO: answer question 4(b) here
+
+4c. If you could change one with about this assignment, what would you change?
+
+# TODO: answer question 4(c) here
+
+4d. Please feel free to include any other feedback you may have below.
+
+# TODO: answer question 4(d) here
